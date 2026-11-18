@@ -76,7 +76,6 @@ export default function App() {
   const itemRefs = useRef([])
   const dragState = useRef({ down: false, sx: 0, sl: 0, moved: 0, lastScroll: 0, drive: 0 })
 
-  // Hanger swing physics animation loop
   useEffect(() => {
     const physics = ITEMS.map((_, i) => ({ a: 0, v: 0, k: 0.05 + (i % 3) * 0.008 }))
     let animId
@@ -159,7 +158,6 @@ export default function App() {
 
   return (
     <div>
-      {/* Top Navigation */}
       <nav className="navbar">
         <div className="brand">STUDIO RAIL.</div>
         <div className="nav-links">
@@ -172,7 +170,6 @@ export default function App() {
         </button>
       </nav>
 
-      {/* Dashboard Quick Overview */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Active Collection</div>
@@ -188,7 +185,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main Clothing Rail Section */}
       <section className="hero">
         <div className="eyebrow">New season · ten pieces on the rail</div>
         <h1>A clothing rail you can handle, right on the page.</h1>
@@ -221,10 +217,10 @@ export default function App() {
                     <div className="lift">
                       <div className="turn">
                         <div className="face">
-                          <GarmentSVG back="{false}" item="{item}"/>
+                          <GarmentSVG item={item} back={false} />
                         </div>
                         <div className="face back">
-                          <GarmentSVG back="{true}" item="{item}"/>
+                          <GarmentSVG item={item} back={true} />
                         </div>
                         <span className="tag">₹{item.price}</span>
                       </div>
@@ -236,7 +232,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Selected Product Details */}
         <div className="detail">
           {selectedItem ? (
             <>
@@ -260,7 +255,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Slide-out Shopping Bag Drawer */}
       {cartOpen && (
         <div className="cart-overlay" onClick={() => setCartOpen(false)}>
           <div className="cart-drawer" onClick={(e) => e.stopPropagation()}>
