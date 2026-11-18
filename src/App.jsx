@@ -1,17 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
 
-const ITEMS = [
-  { id: 1, name: "Heavyweight tee · Bone", kind: "tee", color: "#EFEBE2", price: 1499, desc: "240 gsm organic cotton with tonal embroidery.", details: ["240 gsm", "Regular fit"] },
-  { id: 2, name: "Classic tee · Black", kind: "tee", color: "#1c1c1c", price: 1299, desc: "Soft black tee with clean finish.", details: ["Cotton", "Relaxed fit"] },
-  { id: 3, name: "Oxford shirt · Sky", kind: "long", color: "#9cc4ee", price: 2499, desc: "Light button-down for everyday wear.", details: ["Poplin", "Slim fit"] },
-  { id: 4, name: "Knit sweater · Olive", kind: "long", color: "#6f7a3c", price: 3299, desc: "Chunky knit, warm and breathable.", details: ["Wool blend", "Boxy"] },
-  { id: 5, name: "Pullover hoodie · Grey", kind: "hoodie", color: "#b4b4b6", price: 2999, desc: "Heavy fleece hoodie with kangaroo pocket.", details: ["400 gsm", "Oversized"] },
-  { id: 6, name: "Hoodie · Lilac", kind: "hoodie", color: "#b9a0e6", price: 2799, desc: "Soft lilac hoodie, brushed inside.", details: ["Fleece", "Regular"] },
-  { id: 7, name: "Pocket tee · Forest", kind: "tee", color: "#1f5a35", price: 1599, desc: "Deep green tee with chest pocket.", details: ["Cotton", "Regular"] },
-  { id: 8, name: "Sweatshirt · Rust", kind: "long", color: "#b5543a", price: 2199, desc: "Crewneck sweatshirt, garment dyed.", details: ["Terry", "Relaxed"] },
-  { id: 9, name: "Breton stripe · Navy", kind: "stripe", color: "#161b2e", price: 1899, desc: "Classic striped long sleeve.", details: ["Jersey", "Slim"] },
-  { id: 10, name: "Oversized tee · Ochre", kind: "tee", color: "#d9a02a", price: 1699, desc: "Boxy ochre tee with small chest mark and large back print.", details: ["Boxy", "Cotton"] }
+const INITIAL_ITEMS = [
+  { id: 1, name: "Heavyweight tee · Bone", category: "T-Shirts", kind: "tee", color: "#EFEBE2", price: 1499, stock: 18, desc: "240 gsm organic cotton with tonal embroidery.", details: ["240 gsm", "Regular fit"] },
+  { id: 2, name: "Classic tee · Black", category: "T-Shirts", kind: "tee", color: "#1c1c1c", price: 1299, stock: 25, desc: "Soft black tee with clean finish.", details: ["Cotton", "Relaxed fit"] },
+  { id: 3, name: "Oxford shirt · Sky", category: "Shirts & Knits", kind: "long", color: "#9cc4ee", price: 2499, stock: 12, desc: "Light button-down for everyday wear.", details: ["Poplin", "Slim fit"] },
+  { id: 4, name: "Knit sweater · Olive", category: "Shirts & Knits", kind: "long", color: "#6f7a3c", price: 3299, stock: 4, desc: "Chunky knit, warm and breathable.", details: ["Wool blend", "Boxy"] },
+  { id: 5, name: "Pullover hoodie · Grey", category: "Hoodies", kind: "hoodie", color: "#b4b4b6", price: 2999, stock: 15, desc: "Heavy fleece hoodie with kangaroo pocket.", details: ["400 gsm", "Oversized"] },
+  { id: 6, name: "Hoodie · Lilac", category: "Hoodies", kind: "hoodie", color: "#b9a0e6", price: 2799, stock: 9, desc: "Soft lilac hoodie, brushed inside.", details: ["Fleece", "Regular"] },
+  { id: 7, name: "Pocket tee · Forest", category: "T-Shirts", kind: "tee", color: "#1f5a35", price: 1599, stock: 20, desc: "Deep green tee with chest pocket.", details: ["Cotton", "Regular"] },
+  { id: 8, name: "Sweatshirt · Rust", category: "Shirts & Knits", kind: "long", color: "#b5543a", price: 2199, stock: 3, desc: "Crewneck sweatshirt, garment dyed.", details: ["Terry", "Relaxed"] },
+  { id: 9, name: "Breton stripe · Navy", category: "Shirts & Knits", kind: "stripe", color: "#161b2e", price: 1899, stock: 14, desc: "Classic striped long sleeve.", details: ["Jersey", "Slim"] },
+  { id: 10, name: "Oversized tee · Ochre", category: "T-Shirts", kind: "tee", color: "#d9a02a", price: 1699, stock: 11, desc: "Boxy ochre tee with small chest mark and large back print.", details: ["Boxy", "Cotton"] }
 ]
 
 const PATH = {
@@ -67,30 +67,38 @@ function GarmentSVG({ item, back }) {
 }
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState('storefront')
+  const [items, setItems] = useState(INITIAL_ITEMS)
   const [activeIdx, setActiveIdx] = useState(-1)
   const [cart, setCart] = useState([])
   const [cartOpen, setCartOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [orders, setOrders] = useState([
+    { id: "#ORD-1042", customer: "Aarav Sharma", itemsCount: 2, total: 4498, status: "Delivered" },
+    { id: "#ORD-1043", customer: "Priya Verma", itemsCount: 1, total: 2999, status: "Shipped" }
+  ])
 
   const scrollerRef = useRef(null)
   const itemRefs = useRef([])
   const dragState = useRef({ down: false, sx: 0, sl: 0, moved: 0, lastScroll: 0, drive: 0 })
 
   useEffect(() => {
-    const physics = ITEMS.map((_, i) => ({ a: 0, v: 0, k: 0.05 + (i % 3) * 0.008 }))
+    if (activeTab !== 'storefront') return
+    const physics = items.map((_, i) => ({ a: 0, v: 0, k: 0.032 + (i % 3) * 0.005 }))
     let animId
 
     const loop = () => {
-      const push = Math.max(-3, Math.min(3, dragState.current.drive))
-      dragState.current.drive *= 0.8
+      const push = Math.max(-2.2, Math.min(2.2, dragState.current.drive))
+      dragState.current.drive *= 0.85
 
       itemRefs.current.forEach((el, i) => {
         if (!el) return
         const s = physics[i]
-        s.v += push * 0.9 * (1 + (i % 4) * 0.06) - s.a * s.k * 3
-        s.v *= 0.9
+        s.v += push * 0.65 * (1 + (i % 4) * 0.04) - s.a * s.k * 2.4
+        s.v *= 0.93
         s.a += s.v
-        s.a = Math.max(-28, Math.min(28, s.a))
+        s.a = Math.max(-22, Math.min(22, s.a))
         el.style.transform = `rotate(${s.a.toFixed(2)}deg)`
       })
       animId = requestAnimationFrame(loop)
@@ -98,7 +106,7 @@ export default function App() {
 
     animId = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(animId)
-  }, [])
+  }, [activeTab, items])
 
   const handlePointerDown = (e) => {
     const scroller = scrollerRef.current
@@ -149,21 +157,54 @@ export default function App() {
   }
 
   const addToCart = (item) => {
+    if (item.stock <= 0) {
+      alert("Out of stock!")
+      return
+    }
     setCart((prev) => [...prev, item])
     setCartOpen(true)
   }
 
-  const selectedItem = activeIdx >= 0 ? ITEMS[activeIdx] : null
-  const totalRevenue = cart.reduce((sum, item) => sum + item.price, 0)
+  const updateStock = (id, delta) => {
+    setItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, stock: Math.max(0, it.stock + delta) } : it))
+    )
+  }
+
+  const handleCheckout = () => {
+    const totalAmt = cart.reduce((sum, item) => sum + item.price, 0)
+    const newOrder = {
+      id: `#ORD-${1042 + orders.length}`,
+      customer: "Guest Customer",
+      itemsCount: cart.length,
+      total: totalAmt,
+      status: "Processing"
+    }
+    setOrders([newOrder, ...orders])
+    setCart([])
+    setCartOpen(false)
+    setActiveTab('orders')
+  }
+
+  const selectedItem = activeIdx >= 0 ? items[activeIdx] : null
+  const totalBagValue = cart.reduce((sum, item) => sum + item.price, 0)
+  const totalStockCount = items.reduce((sum, item) => sum + item.stock, 0)
+  const filteredCatalog = selectedCategory === 'All' ? items : items.filter(i => i.category === selectedCategory)
 
   return (
     <div>
       <nav className="navbar">
-        <div className="brand">STUDIO RAIL.</div>
+        <div className="brand" onClick={() => setActiveTab('storefront')}>STUDIO RAIL.</div>
         <div className="nav-links">
-          <span className="active-tab">Storefront</span>
-          <span>Inventory (10)</span>
-          <span>Analytics</span>
+          <span className={activeTab === 'storefront' ? 'active-tab' : ''} onClick={() => setActiveTab('storefront')}>
+            Storefront
+          </span>
+          <span className={activeTab === 'inventory' ? 'active-tab' : ''} onClick={() => setActiveTab('inventory')}>
+            Inventory ({items.length})
+          </span>
+          <span className={activeTab === 'orders' ? 'active-tab' : ''} onClick={() => setActiveTab('orders')}>
+            Orders ({orders.length})
+          </span>
         </div>
         <button className="cart-btn" onClick={() => setCartOpen(true)}>
           Bag ({cart.length})
@@ -172,88 +213,226 @@ export default function App() {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-label">Active Collection</div>
-          <div className="stat-val">10 Pieces</div>
+          <div className="stat-label">Total Stock Units</div>
+          <div className="stat-val">{totalStockCount} pcs</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Current Bag Value</div>
-          <div className="stat-val">₹{totalRevenue.toLocaleString('en-IN')}</div>
+          <div className="stat-val">₹{totalBagValue.toLocaleString('en-IN')}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Season Status</div>
-          <div className="stat-val" style={{ color: '#1f5a35' }}>Live</div>
+          <div className="stat-label">Total Orders</div>
+          <div className="stat-val" style={{ color: '#1f5a35' }}>{orders.length} Active</div>
         </div>
       </div>
 
-      <section className="hero">
-        <div className="eyebrow">New season · ten pieces on the rail</div>
-        <h1>A clothing rail you can handle, right on the page.</h1>
+      {activeTab === 'storefront' && (
+        <>
+          <section className="hero">
+            <div className="eyebrow">New season · ten pieces on the rail</div>
+            <h1>A clothing rail you can handle, right on the page.</h1>
 
-        <div
-          ref={scrollerRef}
-          className={`scroller ${isDragging ? 'drag' : ''}`}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-          onScroll={handleScroll}
-        >
-          <div className="track">
-            <div className="bar"></div>
-            {ITEMS.map((item, i) => {
-              const isActive = activeIdx === i
-              const isDim = activeIdx !== -1 && !isActive
-              return (
-                <div
-                  key={item.id}
-                  className={`item ${isActive ? 'active' : ''} ${isDim ? 'dim' : ''}`}
-                  onClick={() => handleSelect(i)}
-                >
-                  <div className="sway" ref={(el) => (itemRefs.current[i] = el)}>
-                    <svg className="hanger" viewBox="0 0 64 30">
-                      <path d="M32 2 Q38 2 38 8 Q38 12 32 14" fill="none" stroke="#777" strokeWidth="2" />
-                      <path d="M32 14 L4 27 Q2 28 4 29 L60 29 Q62 28 60 27 Z" fill="#c8985a" />
-                    </svg>
-                    <div className="lift">
-                      <div className="turn">
-                        <div className="face">
-                          <GarmentSVG item={item} back={false} />
+            <div
+              ref={scrollerRef}
+              className={`scroller ${isDragging ? 'drag' : ''}`}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
+              onScroll={handleScroll}
+            >
+              <div className="track">
+                <div className="bar"></div>
+                {items.map((item, i) => {
+                  const isActive = activeIdx === i
+                  const isDim = activeIdx !== -1 && !isActive
+                  return (
+                    <div
+                      key={item.id}
+                      className={`item ${isActive ? 'active' : ''} ${isDim ? 'dim' : ''}`}
+                      onClick={() => handleSelect(i)}
+                    >
+                      <div className="sway" ref={(el) => (itemRefs.current[i] = el)}>
+                        <svg className="hanger" viewBox="0 0 64 30">
+                          <path d="M32 2 Q38 2 38 8 Q38 12 32 14" fill="none" stroke="#777" strokeWidth="2" />
+                          <path d="M32 14 L4 27 Q2 28 4 29 L60 29 Q62 28 60 27 Z" fill="#c8985a" />
+                        </svg>
+                        <div className="lift">
+                          <div className="turn">
+                            <div className="face">
+                              <GarmentSVG item={item} back={false} />
+                            </div>
+                            <div className="face back">
+                              <GarmentSVG item={item} back={true} />
+                            </div>
+                            <span className="tag">₹{item.price}</span>
+                          </div>
                         </div>
-                        <div className="face back">
-                          <GarmentSVG item={item} back={true} />
-                        </div>
-                        <span className="tag">₹{item.price}</span>
                       </div>
                     </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="detail">
+              {selectedItem ? (
+                <>
+                  <h2>{selectedItem.name}</h2>
+                  <p>{selectedItem.desc}</p>
+                  <div className="chips">
+                    {selectedItem.details.map((d, idx) => (
+                      <span key={idx}>{d}</span>
+                    ))}
+                    <span>{selectedItem.stock} in stock</span>
+                  </div>
+                  <button className="btn" onClick={() => addToCart(selectedItem)}>
+                    Add to Bag · ₹{selectedItem.price}
+                  </button>
+                </>
+              ) : (
+                <p className="hint">
+                  Rail pe slide karo, hanger pe hover karo, ya kisi piece pe click karke zoom aur back print dekho.
+                </p>
+              )}
+            </div>
+          </section>
+
+          <div className="section-wrap">
+            <div className="section-header">
+              <h3>Shop by Category</h3>
+              <span>Filter collection</span>
+            </div>
+            <div className="category-row">
+              {['All', 'T-Shirts', 'Shirts & Knits', 'Hoodies'].map((cat) => (
+                <div
+                  key={cat}
+                  className="cat-box"
+                  style={{ borderColor: selectedCategory === cat ? '#111' : '#eaeaea' }}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  <div>
+                    <h4>{cat}</h4>
+                    <p>{cat === 'All' ? 'View all 10 pieces' : `Explore ${cat}`}</p>
+                  </div>
+                  <span>→</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="section-header">
+              <h3>Complete Catalog ({selectedCategory})</h3>
+              <span>Direct quick-add</span>
+            </div>
+            <div className="product-grid">
+              {filteredCatalog.map((prod) => (
+                <div key={prod.id} className="p-card">
+                  <div>
+                    <div className="p-thumb">
+                      <GarmentSVG item={prod} back={false} />
+                    </div>
+                    <div className="p-title">{prod.name}</div>
+                    <div className="p-desc">{prod.desc}</div>
+                  </div>
+                  <div className="p-bottom">
+                    <span className="p-price">₹{prod.price}</span>
+                    <button className="p-add" onClick={() => addToCart(prod)}>
+                      + Add to Bag
+                    </button>
                   </div>
                 </div>
-              )
-            })}
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {activeTab === 'inventory' && (
+        <div className="section-wrap">
+          <div className="section-header">
+            <h3>Live Stock Inventory</h3>
+            <span>Manage product stock levels</span>
+          </div>
+          <div className="panel-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                  <th>Stock Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((it) => (
+                  <tr key={it.id}>
+                    <td><strong>{it.name}</strong></td>
+                    <td>{it.category}</td>
+                    <td>₹{it.price}</td>
+                    <td>
+                      <span className={`badge ${it.stock > 5 ? 'badge-ok' : 'badge-low'}`}>
+                        {it.stock > 5 ? 'In Stock' : 'Low Stock'}
+                      </span>
+                    </td>
+                    <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <button className="qty-btn" onClick={() => updateStock(it.id, -1)}>-</button>
+                      <span style={{ minWidth: '24px', textAlign: 'center', fontWeight: '600' }}>{it.stock}</span>
+                      <button className="qty-btn" onClick={() => updateStock(it.id, 1)}>+</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+      )}
 
-        <div className="detail">
-          {selectedItem ? (
-            <>
-              <h2>{selectedItem.name}</h2>
-              <p>{selectedItem.desc}</p>
-              <div className="chips">
-                {selectedItem.details.map((d, idx) => (
-                  <span key={idx}>{d}</span>
+      {activeTab === 'orders' && (
+        <div className="section-wrap">
+          <div className="section-header">
+            <h3>Customer Orders</h3>
+            <span>Recent store purchases</span>
+          </div>
+          <div className="panel-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Items</th>
+                  <th>Total Paid</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((ord, idx) => (
+                  <tr key={idx}>
+                    <td><strong>{ord.id}</strong></td>
+                    <td>{ord.customer}</td>
+                    <td>{ord.itemsCount} pcs</td>
+                    <td>₹{ord.total.toLocaleString('en-IN')}</td>
+                    <td><span className="badge badge-ok">{ord.status}</span></td>
+                  </tr>
                 ))}
-                <span>₹{selectedItem.price}</span>
-              </div>
-              <button className="btn" onClick={() => addToCart(selectedItem)}>
-                Add to Bag · ₹{selectedItem.price}
-              </button>
-            </>
-          ) : (
-            <p className="hint">
-              Rail pe slide karo, hanger ke upar hover karo, kisi piece pe click karke peeche ka side dekho.
-            </p>
-          )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </section>
+      )}
+
+      <footer className="footer">
+        <div className="footer-inner">
+          <div>
+            <h4>STUDIO RAIL.</h4>
+            <p>Interactive fashion storefront & inventory dashboard.</p>
+          </div>
+          <div>
+            <p>Free shipping across India on orders above ₹1,999.</p>
+            <p style={{ marginTop: '6px' }}>© 2026 Studio Rail Store. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
 
       {cartOpen && (
         <div className="cart-overlay" onClick={() => setCartOpen(false)}>
@@ -264,7 +443,7 @@ export default function App() {
                 <button onClick={() => setCartOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
               </div>
               {cart.length === 0 ? (
-                <p style={{ color: '#888', fontSize: '14px' }}>Abhi bag khali hai. Rail se koi kapda select karke add karo.</p>
+                <p style={{ color: '#888', fontSize: '14px' }}>Abhi bag khali hai. Rail ya catalog se kapde add karo.</p>
               ) : (
                 cart.map((c, idx) => (
                   <div key={idx} className="cart-item">
@@ -278,9 +457,9 @@ export default function App() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', fontWeight: '700' }}>
                   <span>Total</span>
-                  <span>₹{totalRevenue.toLocaleString('en-IN')}</span>
+                  <span>₹{totalBagValue.toLocaleString('en-IN')}</span>
                 </div>
-                <button className="btn" style={{ width: '100%' }} onClick={() => { alert('Order Placed!'); setCart([]); setCartOpen(false); }}>
+                <button className="btn" style={{ width: '100%' }} onClick={handleCheckout}>
                   Checkout Now
                 </button>
               </div>
