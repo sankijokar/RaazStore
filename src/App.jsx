@@ -292,7 +292,7 @@ export default function App() {
                 </>
               ) : (
                 <p className="hint">
-                  Rail pe slide karo, hanger pe hover karo, ya kisi piece pe click karke zoom aur back print dekho.
+Slide along the rail, hover over the hanger, or click on any piece to zoom in and see the back printing.
                 </p>
               )}
             </div>
